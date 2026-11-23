@@ -1,0 +1,9 @@
+tank_bridge:
+  ros__parameters:
+    port: "/dev/ttyUSB0"          # 串口选型待定，先留参数
+    baud: 921600
+    wheel_separation: 0.20        # TODO: 实测轮距后修改
+    max_linear: 0.40              # 100% 占空比对应的线速度 m/s
+    max_angular: 1.50             # 100% 占空比对应的角速度 rad/s
+    timeout: 500                  # ms，断流后自动停车
+    publish_rate: 20.0            # Hz

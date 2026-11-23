@@ -1,0 +1,51 @@
+# ---------- 大体积参考资料（不要进 git） ----------
+esp32-s3/*.zip
+esp32-s3/烧录/
+esp32-s3/烧录.zip
+esp32-s3/xiaozhi-esp32-yuyi-*.zip
+
+# ---------- ESP-IDF 构建产物 / 依赖 ----------
+**/build/
+**/managed_components/
+**/releases/
+**/*.bin
+**/*.elf
+**/*.map
+**/sdkconfig.old
+**/compile_commands.json
+**/.cache/
+
+# 说明：
+# - managed_components 可由 dependencies.lock + idf_component.yml 重新拉取
+# - 出厂固件 yuyi-a2-V1-*.bin 建议放 GitHub Release，不进 git
+
+# ---------- ROS2 构建产物 ----------
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+**/*.bag
+**/*.bag.active
+**/*.db3
+**/*.mcap
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- 本机配置与密钥 ----------
+.env
+*.pem
+*.key
+**/local_config.yaml
