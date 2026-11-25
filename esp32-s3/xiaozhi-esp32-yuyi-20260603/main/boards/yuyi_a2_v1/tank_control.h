@@ -28,6 +28,9 @@ bool TankTurnRight(void);
 // 发送停止命令
 bool TankStop(void);
 
+// tank-ros2: 直接设置左右履带速度（-100~100），投递到运动控制队列
+bool TankSetWheelSpeeds(int left, int right);
+
 // 发送舞蹈命令
 void TankDance(void);
 

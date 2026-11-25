@@ -20,6 +20,9 @@ void spark_bot_motion_control(float x, float y);
 void set_motor_speed_coefficients(float coefficient);
 void spark_bot_dance(void);
 
+// tank-ros2: 直接设置左右履带速度，范围 -100~100，正值前进
+void tank_set_wheel_speeds(int left, int right);
+
 
 #ifdef __cplusplus
 }

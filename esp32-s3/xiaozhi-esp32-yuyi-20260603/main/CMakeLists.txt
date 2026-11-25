@@ -597,6 +597,12 @@ idf_component_register(SRCS ${SOURCES}
                     WHOLE_ARCHIVE
                     )
 
+# tank-ros2: 默认关闭厂商上电自走；需要时 -DTANK_ENABLE_POWER_ON_DEMO=ON
+option(TANK_ENABLE_POWER_ON_DEMO "Enable vendor power-on demo move" OFF)
+if(TANK_ENABLE_POWER_ON_DEMO)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE TANK_ENABLE_POWER_ON_DEMO)
+endif()
+
 # Use target_compile_definitions to define BOARD_TYPE, BOARD_NAME
 # If BOARD_NAME is empty, use BOARD_TYPE
 if(NOT BOARD_NAME)

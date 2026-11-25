@@ -31,6 +31,9 @@ extern "C" {
 // 坦克控制函数声明
 #include "tank_control.h"
 
+// tank-ros2: 串口控制链路
+#include "tank_uart_ctrl.h"
+
 #define TAG "yuyi_a2_v1"
 #define BATTERY_ADC_CHANNEL ADC_CHANNEL_2
 #define BATTERY_ADC_ATTEN ADC_ATTEN_DB_12
@@ -210,6 +213,9 @@ private:
     {
         // 初始化坦克运动控制系统
         TankControlInit();
+
+        // tank-ros2: 启动 ROS2 控制串口（UART1 / GPIO8-10）
+        TankUartCtrlInit();
 
         auto& mcp_server = McpServer::GetInstance();
         
@@ -416,7 +422,14 @@ public:
         
         // 初始化工具（依赖电机）
         InitializeTools();
-        TankMoveForward(); //非测试代码，不可以删除
+
+        // tank-ros2: 默认关闭上电自走。需要厂商演示行为时定义
+        // TANK_ENABLE_POWER_ON_DEMO 重新编译即可。
+#ifdef TANK_ENABLE_POWER_ON_DEMO
+        TankMoveForward();
+#else
+        // 上电不自走，等待 ROS2 /cmd_vel 下发命令
+#endif
 
         // 初始读取一次电量
         UpdateBatteryStatus();

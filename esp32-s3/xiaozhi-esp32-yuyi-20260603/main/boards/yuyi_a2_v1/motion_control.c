@@ -112,6 +112,18 @@ void spark_bot_motion_control(float x, float y)
     set_right_motor_speed(right_speed);
 }
 
+// tank-ros2: ROS2 桥接使用的左右轮直控接口
+void tank_set_wheel_speeds(int left_speed, int right_speed)
+{
+    if (left_speed > MOTOR_SPEED_MAX) left_speed = MOTOR_SPEED_MAX;
+    if (left_speed < -MOTOR_SPEED_MAX) left_speed = -MOTOR_SPEED_MAX;
+    if (right_speed > MOTOR_SPEED_MAX) right_speed = MOTOR_SPEED_MAX;
+    if (right_speed < -MOTOR_SPEED_MAX) right_speed = -MOTOR_SPEED_MAX;
+
+    set_left_motor_speed(left_speed);
+    set_right_motor_speed(right_speed);
+}
+
 void set_motor_speed_coefficients(float coefficient)
 {
     if (coefficient < 0) {

@@ -23,7 +23,8 @@ extern "C" {
 enum class MotionCmdType {
     STOP,       // 停止
     MOVE,       // 持续运动
-    MOVE_TIMED  // 定时运动
+    MOVE_TIMED, // 定时运动
+    WHEELS      // tank-ros2: 左右轮直控
 };
 
 // 运动控制命令结构
@@ -32,6 +33,8 @@ struct MotionCommand {
     float x;
     float y;
     int duration_ms;  // 用于MOVE_TIMED
+    int left;         // tank-ros2: 用于WHEELS
+    int right;        // tank-ros2: 用于WHEELS
 };
 
 // 静态成员变量
@@ -43,7 +46,7 @@ static bool g_initialized = false;
 static void MotionControlTask(void* arg)
 {
     (void)arg;
-    MotionCommand cmd;
+    MotionCommand cmd{};
     int remaining_ticks = 0;
     bool is_moving = false;
 
@@ -72,6 +75,12 @@ static void MotionControlTask(void* arg)
                     is_moving = true;
                     remaining_ticks = pdMS_TO_TICKS(cmd.duration_ms);
                     ESP_LOGI(TAG, "收到定时运动命令: x=%.2f, y=%.2f, %d ms", cmd.x, cmd.y, cmd.duration_ms);
+                    break;
+
+                case MotionCmdType::WHEELS:
+                    tank_set_wheel_speeds(cmd.left, cmd.right);
+                    is_moving = true;
+                    remaining_ticks = 0;  // 由串口看门狗负责停车
                     break;
             }
         }
@@ -136,7 +145,7 @@ extern "C" void TankControlInit(void)
 extern "C" bool TankMoveForward(void)
 {
     ESP_LOGI(TAG, "小车向前移动5秒");
-    MotionCommand cmd;
+    MotionCommand cmd{};
     cmd.type = MotionCmdType::MOVE_TIMED;
     cmd.x = 0;
     cmd.y = 1;
@@ -148,7 +157,7 @@ extern "C" bool TankMoveForward(void)
 extern "C" bool TankMoveBackward(void)
 {
     ESP_LOGI(TAG, "小车向后移动5秒");
-    MotionCommand cmd;
+    MotionCommand cmd{};
     cmd.type = MotionCmdType::MOVE_TIMED;
     cmd.x = 0;
     cmd.y = -1;
@@ -160,7 +169,7 @@ extern "C" bool TankMoveBackward(void)
 extern "C" bool TankTurnLeft(void)
 {
     ESP_LOGI(TAG, "小车向左转5秒");
-    MotionCommand cmd;
+    MotionCommand cmd{};
     cmd.type = MotionCmdType::MOVE_TIMED;
     cmd.x = -1;
     cmd.y = 0;
@@ -172,7 +181,7 @@ extern "C" bool TankTurnLeft(void)
 extern "C" bool TankTurnRight(void)
 {
     ESP_LOGI(TAG, "小车向右转5秒");
-    MotionCommand cmd;
+    MotionCommand cmd{};
     cmd.type = MotionCmdType::MOVE_TIMED;
     cmd.x = 1;
     cmd.y = 0;
@@ -184,11 +193,21 @@ extern "C" bool TankTurnRight(void)
 extern "C" bool TankStop(void)
 {
     ESP_LOGI(TAG, "小车停止");
-    MotionCommand cmd;
+    MotionCommand cmd{};
     cmd.type = MotionCmdType::STOP;
     cmd.x = 0;
     cmd.y = 0;
     cmd.duration_ms = 0;
+    return SendMotionCommand(cmd);
+}
+
+// tank-ros2: 直接设置左右履带速度，统一走运动控制队列
+extern "C" bool TankSetWheelSpeeds(int left, int right)
+{
+    MotionCommand cmd{};
+    cmd.type = MotionCmdType::WHEELS;
+    cmd.left = left;
+    cmd.right = right;
     return SendMotionCommand(cmd);
 }
 
