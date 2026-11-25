@@ -32,6 +32,7 @@ ESP32-S3 小车  ← Wi-Fi →  命令服务器（RK3588 / 外部 4090）  ← �
 - [任务卡索引](docs/tasks/README.md) —— 每张卡含状态、依赖、步骤、验收，可直接当 checklist
 - [环境与版本记录](docs/env.md) —— RK3588 / H618 / ESP32 / 网络版本信息
 - [串口控制协议 v1](docs/protocol.md) —— ESP32 控制帧、双层看门狗、差速解算与网络角色
+- [通信方案对比与实验计划](docs/communication-options.md) —— 自定义 UDP vs micro-ROS over Wi-Fi，量化对比与实验步骤
 - [ESP32 板级改动](firmware/README.md) —— 改动清单、接线、编译烧录、串口验证
 
 ## 当前状态

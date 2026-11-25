@@ -181,3 +181,10 @@
 - [ ] 结论明确（采用/搁置）
 
 **风险**：ROS2 消息 CDR 序列化、key 约定、版本兼容，属于深水区。
+
+---
+
+## S6-08 · micro-ROS 实验（方案 B）
+
+> 任务卡放在 [stage-1-control-link.md](stage-1-control-link.md) 末尾，因为它与方案 A（S1-08）直接对比。  
+> 详细方案与指标：[../communication-options.md](../communication-options.md)。

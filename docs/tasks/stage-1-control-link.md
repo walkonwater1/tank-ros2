@@ -212,3 +212,58 @@ S,<left>,<right>,<mv>\n # 可选：状态回传
 - [ ] 实验记录归档
 
 **产出**：`docs/experiments/YYYY-MM-DD-stage1.md`
+
+---
+
+## S1-08 · 自定义 UDP 链路实验（方案 A）
+
+| 状态 | 依赖 | 硬件 | 预计 |
+|---|---|---|---|
+| TODO | S1-07 | 是 | 1~2 天 |
+
+**目标**：把 `W` 帧从 UART 搬到 Wi-Fi UDP，作为通信方案 A 的实验基线。
+
+**前置**：方案对比与实验计划见 [../communication-options.md](../communication-options.md)。
+
+**步骤**
+1. ESP32 用 `esp-wifi-connect` 连 AP，新增 `tank_udp_ctrl.c`（LwIP socket，端口 8888）。
+2. 收到 UDP 包后走 `TankSetWheelSpeeds()` 投递到运动队列，复用 500ms 看门狗。
+3. `tank_bridge` 增加 `transport:=udp` 模式与 `host_ip`/`port` 参数。
+4. 架空轮子验证四个方向；断 Wi-Fi 验证自动停车。
+5. 按 [communication-options.md](../communication-options.md) 的指标做 30 分钟量化。
+
+**验收**
+- [ ] UDP 30 分钟无失控、无内存泄漏
+- [ ] 延迟 P50/P99、带宽、ESP32 最小堆记录归档
+- [ ] 断网 500ms 内停车
+
+**产出**：`docs/experiments/YYYY-MM-DD-udp.md`
+
+**风险**：小智固件的 Wi-Fi 任务与 UDP 接收任务优先级冲突；AP 多播/隔离影响。
+
+---
+
+## S6-08 · micro-ROS 实验（方案 B）
+
+| 状态 | 依赖 | 硬件 | 预计 |
+|---|---|---|---|
+| TODO | S6-01、S1-08 | 是 | 2~3 天 |
+
+**目标**：ESP32 跑 micro-ROS client，作为 ROS2 节点接入，与方案 A 做量化对比。
+
+**步骤**
+1. ESP-IDF 装 `micro_ros_espidf_component`（IDF 5.4 + ESP32-S3 官方支持）。
+2. RK3588 启动 `micro_ros_agent udp4 --port 8888`。
+3. ESP32 创建 rclc 节点：订阅 `Twist`、发布电池状态，回调走 `TankSetWheelSpeeds()`。
+4. 在 ESP32 侧独立实现 500ms 看门狗（Agent 不参与安全）。
+5. 用与 S1-08 相同的负载和指标记录数据。
+6. 填写 `communication-options.md` 第 6 节的决策依据。
+
+**验收**
+- [ ] `ros2 node list` 能看到 ESP32 节点，`ros2 topic list` 能看到其话题
+- [ ] `/cmd_vel` 能驱动电机，断网 500ms 停车
+- [ ] 与 UDP 方案的对比表完成
+
+**产出**：`docs/experiments/YYYY-MM-DD-microros.md`
+
+**风险**：小智固件内存紧张；Agent 增加故障点；XRCE-DDS 调试门槛高。

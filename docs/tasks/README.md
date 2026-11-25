@@ -20,12 +20,12 @@
 | 阶段 | 文件 | 任务数 | 无硬件可做 |
 |---|---|---|---|
 | 0 基线环境 | [stage-0-baseline.md](stage-0-baseline.md) | 6 | S0-01（部分）、S0-06 |
-| 1 单车控制链路 | [stage-1-control-link.md](stage-1-control-link.md) | 7 | S1-02、S1-03（部分）、S1-06 |
+| 1 单车控制链路 | [stage-1-control-link.md](stage-1-control-link.md) | 8 | S1-02、S1-03（部分）、S1-06、S1-08（方案设计） |
 | 2 工程化 | [stage-2-engineering.md](stage-2-engineering.md) | 5 | S2-03、S2-04（部分） |
 | 3 ros2_control | [stage-3-ros2-control.md](stage-3-ros2-control.md) | 5 | S3-01、S3-02（部分） |
 | 4 传感器与里程计 | [stage-4-odometry.md](stage-4-odometry.md) | 5 | 方案设计部分 |
 | 5 SLAM + Nav2 | [stage-5-nav2.md](stage-5-nav2.md) | 5 | Nav2 参数草案 |
-| 6 多机与 Zenoh | [stage-6-multi-robot-zenoh.md](stage-6-multi-robot-zenoh.md) | 7 | S6-01、S6-03 |
+| 6 多机与 Zenoh | [stage-6-multi-robot-zenoh.md](stage-6-multi-robot-zenoh.md) | 8 | S6-01、S6-03 |
 | 7 部署与进阶 | [stage-7-deploy.md](stage-7-deploy.md) | 5 | S7-01、S7-05（部分） |
 
 ## 现在（无硬件）可以先做的
@@ -40,6 +40,7 @@
 6. **S3-01**：URDF/xacro 草案，尺寸先按实测/估测填。
 7. **S6-03**：容器模拟多机，练命名空间和 DDS。
 8. **S7-01 / S7-05**：Docker Compose 和 CI 框架。
+9. **S1-08 / S6-08**：通信方案对比文档已完成（[communication-options.md](../communication-options.md)），待实车实验。
 
 ## 任务卡模板
 

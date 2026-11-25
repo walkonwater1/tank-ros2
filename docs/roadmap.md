@@ -332,6 +332,7 @@ ROS2 任务：
 - [ ] 对比 DDS 与 Zenoh：发现时间、延迟、带宽、CPU
 - [ ] 可选：`zenoh-bridge-dds` 混合组网
 - [ ] 进阶：`zenoh-pico` 跑在 ESP32 上
+- [ ] **S6-08**：ESP32 Wi-Fi 通信方案实验 —— 自定义 UDP vs micro-ROS，量化对比见 [communication-options.md](communication-options.md)
 
 **验收**：
 
@@ -387,6 +388,14 @@ ROS2 任务：
 - 实验：同一组节点分别跑 DDS 和 Zenoh，记录发现时间与带宽
 
 > 从 ROS 2 Kilted 起，官方将 `rmw_zenoh` 作为默认 RMW（具体以发行版说明为准）。Humble/Jazzy 可手动安装切换。
+
+### 6.2.1 ESP32 侧通信方案（自定义 UDP vs micro-ROS）
+
+- 概念：micro-ROS 是协议栈，不是传输介质；两者都基于 Wi-Fi UDP
+- 方案 A：自定义 UDP，复用 `W` 帧，改动小、资源低
+- 方案 B：micro-ROS client + 主机 Agent，ESP32 成为一等 ROS2 节点
+- 必测指标：延迟 P50/P99、带宽、ESP32 内存/CPU、断线重连、丢包率
+- 详细计划：[communication-options.md](communication-options.md)
 
 ### 6.3 ros2_control
 
