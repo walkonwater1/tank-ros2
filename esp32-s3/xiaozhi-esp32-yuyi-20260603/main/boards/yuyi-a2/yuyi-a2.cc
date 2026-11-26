@@ -43,7 +43,7 @@ extern "C" {
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define TAG "yuyi-a2-lcd1306"
+#define TAG "yuyi-a2"
 #define BATTERY_ADC_CHANNEL ADC_CHANNEL_2
 #define BATTERY_ADC_ATTEN ADC_ATTEN_DB_12
 #define BATTERY_READ_INTERVAL_MS (10 * 1000) // 10 秒
@@ -53,7 +53,7 @@ extern "C" {
 LV_FONT_DECLARE(font_puhui_20_4);
 LV_FONT_DECLARE(font_awesome_20_4);
 
-class yuyi_a2_lcd1306Board : public WifiBoard
+class yuyi_a2Board : public WifiBoard
 {
 private:
     i2c_master_bus_handle_t display_i2c_bus_;
@@ -84,7 +84,7 @@ private:
         timer_count_++;
         if (timer_count_ >= 10)
         {
-            yuyi_a2_lcd1306Board *board = static_cast<yuyi_a2_lcd1306Board *>(arg);
+            yuyi_a2Board *board = static_cast<yuyi_a2Board *>(arg);
             board->UpdateBatteryStatus();
             timer_count_ = 0;
         }
@@ -413,12 +413,12 @@ private:
     }
 
 public:
-    yuyi_a2_lcd1306Board() : boot_button_(BOOT_BUTTON_GPIO),
+    yuyi_a2Board() : boot_button_(BOOT_BUTTON_GPIO),
                      volume_up_button_(VOLUME_UP_BUTTON_GPIO),
                      volume_down_button_(VOLUME_DOWN_BUTTON_GPIO),
                      last_battery_voltage_(0), last_battery_percentage_(-1)
     {
-        ESP_LOGI(TAG, "Initializing yuyi_a2_lcd1306 Board");
+        ESP_LOGI(TAG, "Initializing yuyi_a2 Board");
         // init gpio led
         gpio_config_t led_config = {
             .pin_bit_mask = 1ULL << BUILTIN_LED_GPIO,
@@ -464,7 +464,7 @@ public:
         InitializeTimer();
     }
 
-    ~yuyi_a2_lcd1306Board()
+    ~yuyi_a2Board()
     {
         TspMqttStop();
 
@@ -617,7 +617,7 @@ bool TankGetPowerStatus(int *voltage_mv, int *percentage,
                         bool *charging, bool *discharging,
                         bool *full, int *charge_pin, int *done_pin)
 {
-    auto &board = static_cast<yuyi_a2_lcd1306Board &>(Board::GetInstance());
+    auto &board = static_cast<yuyi_a2Board &>(Board::GetInstance());
     int level = -1;
     bool ch = false;
     bool dis = false;
@@ -768,4 +768,4 @@ bool TankStartFirmwareUpgrade(const char *url)
 
 }  // extern "C"
 
-DECLARE_BOARD(yuyi_a2_lcd1306Board);
+DECLARE_BOARD(yuyi_a2Board);

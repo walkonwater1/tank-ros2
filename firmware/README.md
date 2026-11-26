@@ -3,7 +3,7 @@
 固件工程位于 `esp32-s3/xiaozhi-esp32-yuyi-20260603`，基于小智 2.0.2，`dev` 分支只维护当前实机板型：
 
 ```text
-main/boards/yuyi-a2-lcd1306/
+main/boards/yuyi-a2/
 ```
 
 ## 当前能力
@@ -48,7 +48,7 @@ cd esp32-s3/xiaozhi-esp32-yuyi-20260603
 idf.py build
 ```
 
-`CMakeLists.txt` 已固定使用 `yuyi-a2-lcd1306`，Kconfig 中也只保留这一种板型。
+`CMakeLists.txt` 已固定使用 `yuyi-a2`，Kconfig 中也只保留这一种板型。
 
 ## 烧录
 
@@ -64,7 +64,7 @@ idf.py -p /dev/ttyACM0 monitor
 
 ## 板级目录
 
-- `main/boards/yuyi-a2-lcd1306/`：当前小车板级实现。
+- `main/boards/yuyi-a2/`：当前小车板级实现。
 - `main/boards/common/`：Wi-Fi、按键、系统复位等共享基础代码，不是另一种板型。
 
 其他上游板型已经从 `dev` 分支移除。如需支持其他硬件，应从上游工程建立独立分支，不要直接修改当前板的 GPIO 配置。

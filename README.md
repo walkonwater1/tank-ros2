@@ -34,6 +34,7 @@ ESP32-S3 小车  ← Wi-Fi →  命令服务器（RK3588 / 外部 4090）  ← �
 - [串口控制协议 v1](docs/protocol.md) —— ESP32 控制帧、双层看门狗、差速解算与网络角色
 - [通信方案对比与实验计划](docs/communication-options.md) —— 自定义 UDP vs micro-ROS over Wi-Fi，量化对比与实验步骤
 - [ESP32 板级改动](firmware/README.md) —— 改动清单、接线、编译烧录、串口验证
+- [烧录资料](docs/flashing/README.md) —— 厂商 0x0 合并镜像、Flash Download Tool、烧录示意图
 
 ## 当前状态
 
@@ -56,7 +57,8 @@ tank-ros2/
 ├── .gitignore
 ├── docs/
 │   ├── roadmap.md             # 技术探究与学习路线
-│   └── env.md                 # 环境与版本记录（待补）
+│   ├── env.md                 # 环境与版本记录（待补）
+│   └── flashing/              # 厂商烧录资料（PDF 进 git，exe/bin 本地保留）
 ├── esp32-s3/                  # 厂商资料与固件源码（见下方体积策略）
 ├── firmware/                  # 板级改动、协议说明（见 README.md）
 │   └── README.md              # 改动清单 / 接线 / 烧录 / 验证
@@ -78,20 +80,26 @@ tank-ros2/
 |---|---|---|
 | `managed_components/` | ~501MB | **忽略**，由 `dependencies.lock` 重新拉取 |
 | `xiaozhi-esp32-yuyi-*.zip` | ~248MB | 忽略，原始归档放本地或 Release |
-| `烧录/`（含 Windows 工具） | ~51MB | 忽略，工具不必进仓库 |
-| `烧录.zip` | ~29MB | 忽略 |
 | 固件源码（去掉上述） | ~8MB | 可以进 git |
-| 出厂 `*.bin` | ~10MB | 建议放 GitHub Release |
 
-因此 `.gitignore` 只排除了依赖和压缩包，**保留约 8MB 的固件源码**。如果后续决定只保留板级改动，可把 `esp32-s3/xiaozhi-esp32-yuyi-20260603/` 整体忽略，改成 `firmware/overlay/` + 上游 commit 说明。
+烧录资料已从 `esp32-s3/烧录/` 移到 [docs/flashing/](docs/flashing/)：
+
+| 内容 | 体积 | 处理 |
+|---|---|---|
+| `docs/flashing/mainboard-flashing-guide.pdf` | ~146KB | 进 git |
+| `docs/flashing/flash_download_tool_3.9.10.exe` | ~22MB | 本地保留，忽略 |
+| `docs/flashing/yuyi-a2-v1-20261112-factory.bin` | ~9.6MB | 本地保留，忽略（建议放 GitHub Release） |
+| `docs/flashing/configure/` `dl_temp/` `logs/` | — | 本地保留，忽略 |
+
+因此 `.gitignore` 排除了依赖、压缩包和烧录工具的大文件，**保留约 8MB 的固件源码**。如果后续决定只保留板级改动，可把 `esp32-s3/xiaozhi-esp32-yuyi-20260603/` 整体忽略，改成 `firmware/overlay/` + 上游 commit 说明。
 
 ## 固件基线
 
-- 工程版本：`2.0.2`
-- 板型：`CONFIG_BOARD_TYPE_YUYI_A2_LCD1306=y`
+- 工程版本：`2.0.3`
+- 板型：`CONFIG_BOARD_TYPE_YUYI_A2=y`
 - 要求 ESP-IDF ≥ 5.4
-- 板级配置：`esp32-s3/xiaozhi-esp32-yuyi-20260603/main/boards/yuyi-a2-lcd1306/`
-- 出厂固件：`yuyi-a2-V1-20261112.bin`，为 **0x0 合并镜像**
+- 板级配置：`esp32-s3/xiaozhi-esp32-yuyi-20260603/main/boards/yuyi-a2/`
+- 出厂固件：`docs/flashing/yuyi-a2-v1-20261112-factory.bin`，为 **0x0 合并镜像**（不进 git）
 
 ## 快速开始（占位）
 

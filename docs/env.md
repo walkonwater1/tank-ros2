@@ -59,12 +59,12 @@
 | 到货状态 | 已购买，**预计 2026-11-26 到货**（未到前无法做实车验证） |
 | 主板 | Yuyi A2 V1 / `ESP32-S3-AI-2-BOARD v1.0_2` |
 | Flash / PSRAM | 16MB / 八线 PSRAM |
-| 固件工程版本 | 2.0.2 |
+| 固件工程版本 | 2.0.3 |
 | ESP-IDF | v5.4.4（开发 PC，2026-11-25 验证编译通过） |
-| 板型宏 | `CONFIG_BOARD_TYPE_YUYI_A2_LCD1306=y` |
+| 板型宏 | `CONFIG_BOARD_TYPE_YUYI_A2=y` |
 | 控制串口 | UART1：TX=GPIO8 / RX=GPIO10，921600 8N1（已选定，待实车确认排针） |
 | 烧录方式 | USB（原生 USB）/ `esptool` |
-| 出厂固件 | `yuyi-a2-V1-20261112.bin`，0x0 合并镜像 |
+| 出厂固件 | `docs/flashing/yuyi-a2-v1-20261112-factory.bin`，0x0 合并镜像 |
 
 ## 网络
 

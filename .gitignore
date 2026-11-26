@@ -1,8 +1,12 @@
 # ---------- 大体积参考资料（不要进 git） ----------
 esp32-s3/*.zip
-esp32-s3/烧录/
-esp32-s3/烧录.zip
 esp32-s3/xiaozhi-esp32-yuyi-*.zip
+
+# 厂商烧录资料：目录在 docs/flashing/，只把说明书 PDF 和 README 放进 git，
+# Windows 工具、出厂 0x0 镜像、工具的临时目录都不进。
+docs/flashing/*
+!docs/flashing/README.md
+!docs/flashing/mainboard-flashing-guide.pdf
 
 # ---------- ESP-IDF 构建产物 / 依赖 ----------
 **/build/

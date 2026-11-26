@@ -60,16 +60,16 @@
 
 | 资料 | 结论 |
 |---|---|
-| `xiaozhi-esp32-yuyi-20260603/` | 小智 AI 定制分支，`PROJECT_VER 2.0.2`，MIT；`sdkconfig` 已选中 `CONFIG_BOARD_TYPE_YUYI_A2_LCD1306=y`；target `esp32s3`；16MB Flash；8MB assets 分区 |
+| `xiaozhi-esp32-yuyi-20260603/` | 小智 AI 定制分支，`PROJECT_VER 2.0.3`，MIT；`sdkconfig` 已选中 `CONFIG_BOARD_TYPE_YUYI_A2=y`；target `esp32s3`；16MB Flash；8MB assets 分区 |
 | `managed_components/` | 依赖已随包（约 501MB），可离线构建；`idf_component.yml` 要求 **ESP-IDF ≥ 5.4.0** |
-| `main/boards/yuyi-a2-lcd1306/` | 当前实机板级引脚、SSD1306 OLED、电机 PWM、坦克控制、TSP 遥测和 6 个 MCP 工具，二次开发主入口 |
-| `烧录/` | Windows 烧录工具 + 9.98MB 合并固件 `yuyi-a2-V1-20261112.bin`；日志证实从 **0x0** 整片写入 |
+| `main/boards/yuyi-a2/` | 当前实机板级引脚、SSD1306 OLED、电机 PWM、坦克控制、TSP 遥测和 6 个 MCP 工具，二次开发主入口 |
+| `docs/flashing/` | Windows 烧录工具 + 9.98MB 合并固件；日志证实从 **0x0** 整片写入 |
 | `SCH_ESP32-S3-AI-2-BOARD_v1.0_2_2026-10-20.pdf` | AI 主板系统原理图；不含底盘电机驱动；无模块 datasheet |
 | `3D打印框架.3mf` | 外壳结构件 |
 
 > 注意：源码快照（2026-06-03）与出厂固件（2026-11-12）不是同一次构建；烧录日志里实际写入的是 `A2-tank_20260512.bin`。重编后行为可能和出厂不一致。
 
-### 2.3 引脚与资源（以 `main/boards/yuyi-a2-lcd1306/config.h` 为准）
+### 2.3 引脚与资源（以 `main/boards/yuyi-a2/config.h` 为准）
 
 | 功能 | GPIO | 备注 |
 |---|---|---|
@@ -175,7 +175,7 @@ tank_ws/
 │   ├── tank_bringup/       # launch、参数、udev、systemd
 │   └── tank_msgs/          # 可选：自定义消息
 ├── firmware/
-│   └── esp32_ctrl/         # 基于 yuyi-a2-lcd1306 的固件
+│   └── esp32_ctrl/         # 基于 yuyi-a2 的固件
 ├── docs/                   # 环境记录、接线图、实验记录
 └── scripts/
 ```

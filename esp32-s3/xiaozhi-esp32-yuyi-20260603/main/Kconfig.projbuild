@@ -82,11 +82,11 @@ endchoice
 
 choice BOARD_TYPE
     prompt "Board Type"
-    default BOARD_TYPE_YUYI_A2_LCD1306
+    default BOARD_TYPE_YUYI_A2
     help
-        This dev branch only supports the Yuyi A2 LCD1306 tank board.
-    config BOARD_TYPE_YUYI_A2_LCD1306
-        bool "Yuyi-A2-LCD1306"
+        This dev branch only supports the Yuyi A2 tank board.
+    config BOARD_TYPE_YUYI_A2
+        bool "Yuyi-A2"
         depends on IDF_TARGET_ESP32S3
 endchoice
 

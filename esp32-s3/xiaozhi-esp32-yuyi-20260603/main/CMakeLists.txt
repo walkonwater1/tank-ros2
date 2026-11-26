@@ -28,17 +28,18 @@ set(SOURCES "audio/audio_codec.cc"
             "protocols/protocol.cc"
             "protocols/mqtt_protocol.cc"
             "protocols/websocket_protocol.cc"
-            "mcp_server.cc"
-            "system_info.cc"
-            "application.cc"
-            "ota.cc"
-            "settings.cc"
-            "device_state_event.cc"
-            "assets.cc"
+            "mcp/mcp_server.cc"
+            "system/system_info.cc"
+            "app/application.cc"
+            "ota/ota.cc"
+            "settings/settings.cc"
+            "app/device_state_event.cc"
+            "assets/assets.cc"
             "main.cc"
             )
 
-set(INCLUDE_DIRS "." "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "protocols")
+set(INCLUDE_DIRS "." "app" "mcp" "ota" "settings" "system" "assets"
+    "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "protocols")
 
 # Add board common files
 file(GLOB BOARD_COMMON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/boards/common/*.cc)
@@ -63,7 +64,7 @@ set(BUILTIN_TEXT_FONT font_puhui_14_1)
 set(BUILTIN_ICON_FONT font_awesome_14_1)
 
 # This dev branch targets the single production board used by the tank robot.
-set(BOARD_TYPE "yuyi-a2-lcd1306")
+set(BOARD_TYPE "yuyi-a2")
 set(BUILTIN_TEXT_FONT font_puhui_basic_20_4)
 set(BUILTIN_ICON_FONT font_awesome_20_4)
 set(DEFAULT_EMOJI_COLLECTION twemoji_64)
