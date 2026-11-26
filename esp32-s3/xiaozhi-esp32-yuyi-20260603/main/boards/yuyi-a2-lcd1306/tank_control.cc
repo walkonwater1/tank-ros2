@@ -99,6 +99,21 @@ static bool SendMotionCommand(const MotionCommand& cmd)
     return xQueueSend(g_motion_queue, &cmd, pdMS_TO_TICKS(100)) == pdTRUE;
 }
 
+static bool SendTimedMotion(float x, float y, int duration_ms)
+{
+    if (duration_ms < 100 || duration_ms > 3000) {
+        ESP_LOGW(TAG, "运动时长超出范围: %d ms", duration_ms);
+        return false;
+    }
+
+    MotionCommand cmd;
+    cmd.type = MotionCmdType::MOVE_TIMED;
+    cmd.x = x;
+    cmd.y = y;
+    cmd.duration_ms = duration_ms;
+    return SendMotionCommand(cmd);
+}
+
 // 初始化坦克运动控制系统
 extern "C" void TankControlInit(void)
 {
@@ -132,52 +147,52 @@ extern "C" void TankControlInit(void)
     ESP_LOGI(TAG, "坦克运动控制系统初始化完成");
 }
 
-// 发送前进命令（5秒后自动停止）
+// 发送前进命令（3秒后自动停止）
 extern "C" bool TankMoveForward(void)
 {
-    ESP_LOGI(TAG, "小车向前移动5秒");
-    MotionCommand cmd;
-    cmd.type = MotionCmdType::MOVE_TIMED;
-    cmd.x = 0;
-    cmd.y = 1;
-    cmd.duration_ms = 3000;
-    return SendMotionCommand(cmd);
+    ESP_LOGI(TAG, "小车向前移动3秒");
+    return TankMoveForwardFor(3000);
 }
 
-// 发送后退命令（5秒后自动停止）
+extern "C" bool TankMoveForwardFor(int duration_ms)
+{
+    return SendTimedMotion(0, 1, duration_ms);
+}
+
+// 发送后退命令（3秒后自动停止）
 extern "C" bool TankMoveBackward(void)
 {
-    ESP_LOGI(TAG, "小车向后移动5秒");
-    MotionCommand cmd;
-    cmd.type = MotionCmdType::MOVE_TIMED;
-    cmd.x = 0;
-    cmd.y = -1;
-    cmd.duration_ms = 3000;
-    return SendMotionCommand(cmd);
+    ESP_LOGI(TAG, "小车向后移动3秒");
+    return TankMoveBackwardFor(3000);
 }
 
-// 发送左转命令（5秒后自动停止）
+extern "C" bool TankMoveBackwardFor(int duration_ms)
+{
+    return SendTimedMotion(0, -1, duration_ms);
+}
+
+// 发送左转命令（3秒后自动停止）
 extern "C" bool TankTurnLeft(void)
 {
-    ESP_LOGI(TAG, "小车向左转5秒");
-    MotionCommand cmd;
-    cmd.type = MotionCmdType::MOVE_TIMED;
-    cmd.x = -1;
-    cmd.y = 0;
-    cmd.duration_ms = 3000;
-    return SendMotionCommand(cmd);
+    ESP_LOGI(TAG, "小车向左转3秒");
+    return TankTurnLeftFor(3000);
 }
 
-// 发送右转命令（5秒后自动停止）
+extern "C" bool TankTurnLeftFor(int duration_ms)
+{
+    return SendTimedMotion(-1, 0, duration_ms);
+}
+
+// 发送右转命令（3秒后自动停止）
 extern "C" bool TankTurnRight(void)
 {
-    ESP_LOGI(TAG, "小车向右转5秒");
-    MotionCommand cmd;
-    cmd.type = MotionCmdType::MOVE_TIMED;
-    cmd.x = 1;
-    cmd.y = 0;
-    cmd.duration_ms = 3000;
-    return SendMotionCommand(cmd);
+    ESP_LOGI(TAG, "小车向右转3秒");
+    return TankTurnRightFor(3000);
+}
+
+extern "C" bool TankTurnRightFor(int duration_ms)
+{
+    return SendTimedMotion(1, 0, duration_ms);
 }
 
 // 发送停止命令

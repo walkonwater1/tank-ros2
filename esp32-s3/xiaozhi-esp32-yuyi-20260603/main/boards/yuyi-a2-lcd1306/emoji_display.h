@@ -40,6 +40,7 @@ private:
     lv_draw_buf_t* emote_draw_buf_ = nullptr;
     // Notification overlay on emote screen
     lv_obj_t* emote_notification_label_ = nullptr;
+    bool asr_text_visible_ = false;
 
     // Text screen (for WiFi config / verification code)
     lv_obj_t* text_screen_ = nullptr;

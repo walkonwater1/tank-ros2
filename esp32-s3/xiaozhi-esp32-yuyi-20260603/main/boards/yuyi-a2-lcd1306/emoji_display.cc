@@ -14,8 +14,11 @@
 
 #define TAG "EmoteDisplay"
 
+static constexpr int kAsrTextDurationMs = 10000;
+
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
 LV_FONT_DECLARE(BUILTIN_ICON_FONT);
+LV_FONT_DECLARE(font_puhui_basic_14_1);
 
 // Static RoboEyes instance
 static RoboEyes robo_eyes_;
@@ -176,16 +179,24 @@ void EmoteDisplay::SetupEmoteScreen() {
     lv_obj_center(emote_canvas_);
     lv_canvas_fill_bg(emote_canvas_, lv_color_black(), LV_OPA_COVER);
 
-    // Notification overlay (small text at bottom, hidden by default)
-    auto text_font = static_cast<LvglTheme*>(current_theme_)->text_font()->font();
-    emote_notification_label_ = lv_label_create(emote_screen_);
+    // Make the overlay a canvas child so every eye-frame redraw composes it.
+    auto text_font = &font_puhui_basic_14_1;
+    emote_notification_label_ = lv_label_create(emote_canvas_);
     lv_label_set_text(emote_notification_label_, "");
     lv_obj_set_style_text_font(emote_notification_label_, text_font, 0);
-    lv_obj_set_style_text_color(emote_notification_label_, lv_color_white(), 0);
-    lv_obj_set_style_bg_color(emote_notification_label_, lv_color_black(), LV_OPA_COVER);
-    lv_obj_set_style_bg_opa(emote_notification_label_, LV_OPA_80, 0);
-    lv_obj_set_style_pad_all(emote_notification_label_, 2, 0);
-    lv_obj_align(emote_notification_label_, LV_ALIGN_BOTTOM_MID, 0, 0);
+    // This I1 OLED is electrically inverted: LVGL black pixels are the blue
+    // illuminated pixels seen by the user.
+    lv_obj_set_style_text_color(emote_notification_label_, lv_color_black(), 0);
+    lv_obj_set_style_text_opa(emote_notification_label_, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_opa(emote_notification_label_, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(emote_notification_label_, 0, 0);
+    lv_obj_set_style_pad_all(emote_notification_label_, 0, 0);
+    lv_obj_set_width(emote_notification_label_, width_ - 4);
+    lv_obj_set_height(emote_notification_label_, 16);
+    lv_label_set_long_mode(emote_notification_label_, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_style_text_align(emote_notification_label_, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_anim_duration(emote_notification_label_, 4000, 0);
+    lv_obj_set_pos(emote_notification_label_, 2, height_ - 16);
     lv_obj_add_flag(emote_notification_label_, LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -276,7 +287,10 @@ void EmoteDisplay::SetEmoteMode(bool emote) {
 
 void EmoteDisplay::SetStatus(const char* status) {
     DisplayLockGuard lock(this);
-    SetEmoteMode(false);
+    // A listening -> speaking transition happens immediately after STT. Do not
+    // let that status update replace the emote screen while its ASR subtitle is
+    // still visible.
+    SetEmoteMode(asr_text_visible_);
     LvglDisplay::SetStatus(status);
 }
 
@@ -301,6 +315,7 @@ void EmoteDisplay::ShowNotification(const char* notification, int duration_ms) {
 void EmoteDisplay::EmoteNotificationTimerCallback(void* arg) {
     EmoteDisplay* self = static_cast<EmoteDisplay*>(arg);
     DisplayLockGuard lock(self);
+    self->asr_text_visible_ = false;
     if (self->emote_notification_label_ != nullptr) {
         lv_obj_add_flag(self->emote_notification_label_, LV_OBJ_FLAG_HIDDEN);
     }
@@ -376,7 +391,36 @@ void EmoteDisplay::SetChatMessage(const char* role, const char* content) {
             robo_eyes_.setMood(ROBO_MOOD_DEFAULT);
             robo_eyes_.setIdleMode(true, 2, 3);
             robo_eyes_.setCuriosity(true);
+
+            // Keep the animated eyes visible and overlay the latest ASR result
+            // as one scrolling line at the bottom of the 128x64 OLED.
+            if (content != nullptr && content[0] != '\0' &&
+                emote_notification_label_ != nullptr) {
+                ESP_LOGI(TAG, "Show ASR text: %s", content);
+                lv_label_set_text(emote_notification_label_, content);
+                lv_obj_move_foreground(emote_notification_label_);
+                lv_obj_remove_flag(emote_notification_label_, LV_OBJ_FLAG_HIDDEN);
+                asr_text_visible_ = true;
+                if (emote_notification_timer_ != nullptr) {
+                    esp_timer_stop(emote_notification_timer_);
+                    esp_timer_start_once(emote_notification_timer_,
+                                         kAsrTextDurationMs * 1000);
+                }
+            }
         }
+    }
+
+    // The application sends an empty system message when a conversation is
+    // cleared. Remove stale ASR text immediately instead of waiting for the
+    // auto-hide timer.
+    if ((content == nullptr || content[0] == '\0') &&
+        emote_notification_label_ != nullptr) {
+        asr_text_visible_ = false;
+        if (emote_notification_timer_ != nullptr) {
+            esp_timer_stop(emote_notification_timer_);
+        }
+        lv_label_set_text(emote_notification_label_, "");
+        lv_obj_add_flag(emote_notification_label_, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -430,8 +474,17 @@ void EmoteDisplay::RenderEmoteFrame() {
         if (stride > (uint32_t)src_row_bytes) {
             memset(&dst_row[src_row_bytes], 0, stride - src_row_bytes);
         }
+
+        // Reserve a clean black 16px subtitle row. In the inverted I1 canvas,
+        // palette index 1 (all bits set) is the OLED-off/black background.
+        if (y >= height_ - 16) {
+            memset(dst_row, 0xFF, stride);
+        }
     }
 
-    // Mark canvas for redraw (we're in LVGL task, no lock needed)
-    lv_obj_invalidate(emote_canvas_);
+    // Redraw the whole emote screen, not only the full-screen canvas. The ASR
+    // label is a sibling layered above the canvas; invalidating only the canvas
+    // lets the 30 fps eye animation overwrite the label on the next frame.
+    // The dirty area is still 128x64 because the canvas already fills it.
+    lv_obj_invalidate(emote_screen_);
 }

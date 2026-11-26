@@ -38,8 +38,8 @@
 // SSD1306 屏幕分辨率 128x64
 #define DISPLAY_WIDTH   128
 #define DISPLAY_HEIGHT  64
-#define DISPLAY_MIRROR_X false
-#define DISPLAY_MIRROR_Y false
+#define DISPLAY_MIRROR_X true
+#define DISPLAY_MIRROR_Y true
 
 #define LIGHT_RX_PIN GPIO_NUM_12
 #define LIGHT_TX_PIN GPIO_NUM_13
