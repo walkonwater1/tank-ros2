@@ -33,8 +33,10 @@ ESP32-S3 小车  ← Wi-Fi →  命令服务器（RK3588 / 外部 4090）  ← �
 - [环境与版本记录](docs/env.md) —— RK3588 / H618 / ESP32 / 网络版本信息
 - [串口控制协议 v1](docs/protocol.md) —— ESP32 控制帧、双层看门狗、差速解算与网络角色
 - [通信方案对比与实验计划](docs/communication-options.md) —— 自定义 UDP vs micro-ROS over Wi-Fi，量化对比与实验步骤
-- [ESP32 板级改动](firmware/README.md) —— 改动清单、接线、编译烧录、串口验证
-- [烧录资料](docs/flashing/README.md) —— 厂商 0x0 合并镜像、Flash Download Tool、烧录示意图
+- [ESP32 板级改动](esp32-s3/docs/firmware/README.md) —— 改动清单、接线、编译烧录、串口验证
+- [烧录资料](esp32-s3/docs/flashing/README.md) —— 厂商 0x0 合并镜像、Flash Download Tool、烧录示意图
+- [硬件资料](esp32-s3/docs/hardware/README.md) —— AI 主板原理图、3D 打印结构件
+- [上游小智 README](esp32-s3/docs/upstream/xiaozhi/README.md) —— 上游工程说明（中文 / English / 日本語）
 
 ## 当前状态
 
@@ -55,13 +57,22 @@ ESP32-S3 小车  ← Wi-Fi →  命令服务器（RK3588 / 外部 4090）  ← �
 tank-ros2/
 ├── README.md
 ├── .gitignore
-├── docs/
+├── docs/                      # 跨整机文档
 │   ├── roadmap.md             # 技术探究与学习路线
-│   ├── env.md                 # 环境与版本记录（待补）
-│   └── flashing/              # 厂商烧录资料（PDF 进 git，exe/bin 本地保留）
-├── esp32-s3/                  # 厂商资料与固件源码（见下方体积策略）
-├── firmware/                  # 板级改动、协议说明（见 README.md）
-│   └── README.md              # 改动清单 / 接线 / 烧录 / 验证
+│   ├── env.md                 # 环境与版本记录
+│   ├── protocol.md            # 串口控制协议
+│   ├── communication-options.md
+│   └── tasks/                 # 任务卡
+├── esp32-s3/                  # ESP-IDF 固件工程
+│   ├── main/                  # main.cc + app / assets / boards / device / protocols / service
+│   ├── config/                # sdkconfig、sdkconfig.defaults*、partitions/
+│   ├── docs/
+│   │   ├── firmware/          # 板级改动、接线、编译烧录、验证
+│   │   ├── flashing/          # 厂商烧录资料（PDF 进 git，exe/bin 本地保留）
+│   │   ├── hardware/          # AI 主板原理图、3D 打印结构件
+│   │   └── upstream/          # 上游小智 README
+│   ├── backups/               # 厂商备份固件（bin 忽略）
+│   └── scripts/               # 构建/烧录辅助脚本
 ├── tools/                     # 离线工具包（x86 PC 用）
 │   └── device-tree-compiler_1.6.1-1_amd64.deb  # dtc，编译 RK3588 设备树 overlay
 └── ros2_ws/
@@ -82,24 +93,24 @@ tank-ros2/
 | `xiaozhi-esp32-yuyi-*.zip` | ~248MB | 忽略，原始归档放本地或 Release |
 | 固件源码（去掉上述） | ~8MB | 可以进 git |
 
-烧录资料已从 `esp32-s3/烧录/` 移到 [docs/flashing/](docs/flashing/)：
+烧录资料已从 `esp32-s3/烧录/` 移到 [esp32-s3/docs/flashing/](esp32-s3/docs/flashing/)：
 
 | 内容 | 体积 | 处理 |
 |---|---|---|
-| `docs/flashing/mainboard-flashing-guide.pdf` | ~146KB | 进 git |
-| `docs/flashing/flash_download_tool_3.9.10.exe` | ~22MB | 本地保留，忽略 |
-| `docs/flashing/yuyi-a2-v1-20261112-factory.bin` | ~9.6MB | 本地保留，忽略（建议放 GitHub Release） |
-| `docs/flashing/configure/` `dl_temp/` `logs/` | — | 本地保留，忽略 |
+| `esp32-s3/docs/flashing/mainboard-flashing-guide.pdf` | ~146KB | 进 git |
+| `esp32-s3/docs/flashing/flash_download_tool_3.9.10.exe` | ~22MB | 本地保留，忽略 |
+| `esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin` | ~9.6MB | 本地保留，忽略（建议放 GitHub Release） |
+| `esp32-s3/docs/flashing/configure/` `dl_temp/` `logs/` | — | 本地保留，忽略 |
 
-因此 `.gitignore` 排除了依赖、压缩包和烧录工具的大文件，**保留约 8MB 的固件源码**。如果后续决定只保留板级改动，可把 `esp32-s3/xiaozhi-esp32-yuyi-20260603/` 整体忽略，改成 `firmware/overlay/` + 上游 commit 说明。
+因此 `.gitignore` 排除了依赖、压缩包和烧录工具的大文件，**保留约 8MB 的固件源码**。如果后续决定只保留板级改动，可把 `esp32-s3/` 整体忽略，改成 `firmware/overlay/` + 上游 commit 说明。
 
 ## 固件基线
 
 - 工程版本：`2.0.3`
 - 板型：`CONFIG_BOARD_TYPE_YUYI_A2=y`
 - 要求 ESP-IDF ≥ 5.4
-- 板级配置：`esp32-s3/xiaozhi-esp32-yuyi-20260603/main/boards/yuyi-a2/`
-- 出厂固件：`docs/flashing/yuyi-a2-v1-20261112-factory.bin`，为 **0x0 合并镜像**（不进 git）
+- 板级配置：`esp32-s3/main/boards/yuyi-a2/`
+- 出厂固件：`esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin`，为 **0x0 合并镜像**（不进 git）
 
 ## 快速开始（占位）
 
@@ -109,7 +120,7 @@ source /opt/ros/humble/setup.bash
 
 # ESP32 固件
 . $IDF_PATH/export.sh
-cd esp32-s3/xiaozhi-esp32-yuyi-20260603
+cd esp32-s3
 idf.py set-target esp32s3
 idf.py build
 ```

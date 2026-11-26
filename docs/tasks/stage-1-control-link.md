@@ -14,7 +14,7 @@
 
 **目标**：确定 ESP32-S3 与命令服务器的网络控制方式，并记录 UART1 作为调试/本地桥接接口的接线表。H618 不接入底盘命令链路。
 
-**进展（2026-11-25）**：已选定 UART1（GPIO8 TX / GPIO10 RX，921600），不改 console；接线表见 [firmware/README.md](../../firmware/README.md) 和 [protocol.md](../protocol.md)。待实车用万用表确认排针脚序。
+**进展（2026-11-25）**：已选定 UART1（GPIO8 TX / GPIO10 RX，921600），不改 console；接线表见 [esp32-s3/docs/firmware/README.md](../../esp32-s3/docs/firmware/README.md) 和 [protocol.md](../protocol.md)。待实车用万用表确认排针脚序。
 
 **候选方案**
 

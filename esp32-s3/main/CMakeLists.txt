@@ -1,45 +1,47 @@
 # Define source files
-set(SOURCES "audio/audio_codec.cc"
-            "audio/audio_service.cc"
-            "audio/codecs/no_audio_codec.cc"
-            "audio/codecs/box_audio_codec.cc"
-            "audio/codecs/es8311_audio_codec.cc"
-            "audio/codecs/es8374_audio_codec.cc"
-            "audio/codecs/es8388_audio_codec.cc"
-            "audio/codecs/es8389_audio_codec.cc"
-            "audio/codecs/dummy_audio_codec.cc"
-            "audio/processors/audio_debugger.cc"
-            "led/single_led.cc"
-            "led/circular_strip.cc"
-            "led/gpio_led.cc"
-            "display/display.cc"
-            "display/lcd_display.cc"
-            "display/oled_display.cc"
-            "display/lvgl_display/lvgl_display.cc"
-            "display/emote_display.cc"
-            "display/lvgl_display/emoji_collection.cc"
-            "display/lvgl_display/lvgl_theme.cc"
-            "display/lvgl_display/lvgl_font.cc"
-            "display/lvgl_display/lvgl_image.cc"
-            "display/lvgl_display/gif/lvgl_gif.cc"
-            "display/lvgl_display/gif/gifdec.c"
-            "display/lvgl_display/jpg/image_to_jpeg.cpp"
-            "display/lvgl_display/jpg/jpeg_encoder.cpp"
+set(SOURCES "device/audio/audio_codec.cc"
+            "device/audio/audio_service.cc"
+            "device/audio/codecs/no_audio_codec.cc"
+            "device/audio/codecs/box_audio_codec.cc"
+            "device/audio/codecs/es8311_audio_codec.cc"
+            "device/audio/codecs/es8374_audio_codec.cc"
+            "device/audio/codecs/es8388_audio_codec.cc"
+            "device/audio/codecs/es8389_audio_codec.cc"
+            "device/audio/codecs/dummy_audio_codec.cc"
+            "device/audio/processors/audio_debugger.cc"
+            "device/led/single_led.cc"
+            "device/led/circular_strip.cc"
+            "device/led/gpio_led.cc"
+            "device/display/display.cc"
+            "device/display/lcd_display.cc"
+            "device/display/oled_display.cc"
+            "device/display/lvgl_display/lvgl_display.cc"
+            "device/display/emote_display.cc"
+            "device/display/lvgl_display/emoji_collection.cc"
+            "device/display/lvgl_display/lvgl_theme.cc"
+            "device/display/lvgl_display/lvgl_font.cc"
+            "device/display/lvgl_display/lvgl_image.cc"
+            "device/display/lvgl_display/gif/lvgl_gif.cc"
+            "device/display/lvgl_display/gif/gifdec.c"
+            "device/display/lvgl_display/jpg/image_to_jpeg.cpp"
+            "device/display/lvgl_display/jpg/jpeg_encoder.cpp"
             "protocols/protocol.cc"
             "protocols/mqtt_protocol.cc"
             "protocols/websocket_protocol.cc"
-            "mcp/mcp_server.cc"
-            "system/system_info.cc"
+            "service/mcp/mcp_server.cc"
+            "service/system/system_info.cc"
             "app/application.cc"
-            "ota/ota.cc"
-            "settings/settings.cc"
+            "service/ota/ota.cc"
+            "service/settings/settings.cc"
             "app/device_state_event.cc"
             "assets/assets.cc"
             "main.cc"
             )
 
-set(INCLUDE_DIRS "." "app" "mcp" "ota" "settings" "system" "assets"
-    "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "protocols")
+set(INCLUDE_DIRS "." "app" "assets" "protocols"
+    "service/ota" "service/mcp" "service/settings" "service/system"
+    "device" "device/audio" "device/display" "device/display/lvgl_display"
+    "device/display/lvgl_display/jpg" "device/led")
 
 # Add board common files
 file(GLOB BOARD_COMMON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/boards/common/*.cc)
@@ -77,15 +79,15 @@ list(APPEND SOURCES ${BOARD_SOURCES})
 
 # Select audio processor according to Kconfig
 if(CONFIG_USE_AUDIO_PROCESSOR)
-    list(APPEND SOURCES "audio/processors/afe_audio_processor.cc")
+    list(APPEND SOURCES "device/audio/processors/afe_audio_processor.cc")
 else()
-    list(APPEND SOURCES "audio/processors/no_audio_processor.cc")
+    list(APPEND SOURCES "device/audio/processors/no_audio_processor.cc")
 endif()
 if(CONFIG_IDF_TARGET_ESP32S3 OR CONFIG_IDF_TARGET_ESP32P4)
-    list(APPEND SOURCES "audio/wake_words/afe_wake_word.cc")
-    list(APPEND SOURCES "audio/wake_words/custom_wake_word.cc")
+    list(APPEND SOURCES "device/audio/wake_words/afe_wake_word.cc")
+    list(APPEND SOURCES "device/audio/wake_words/custom_wake_word.cc")
 else()
-    list(APPEND SOURCES "audio/wake_words/esp_wake_word.cc")
+    list(APPEND SOURCES "device/audio/wake_words/esp_wake_word.cc")
 endif()
 
 # Select language directory according to Kconfig
@@ -143,10 +145,10 @@ file(GLOB COMMON_SOUNDS ${CMAKE_CURRENT_SOURCE_DIR}/assets/common/*.ogg)
 
 # If target chip is ESP32, exclude specific files to avoid build errors
 if(CONFIG_IDF_TARGET_ESP32)
-    list(REMOVE_ITEM SOURCES "audio/codecs/box_audio_codec.cc"
-                             "audio/codecs/es8388_audio_codec.cc"
-                             "audio/codecs/es8389_audio_codec.cc"
-                             "led/gpio_led.cc"
+    list(REMOVE_ITEM SOURCES "device/audio/codecs/box_audio_codec.cc"
+                             "device/audio/codecs/es8388_audio_codec.cc"
+                             "device/audio/codecs/es8389_audio_codec.cc"
+                             "device/led/gpio_led.cc"
                              )
 endif()
 

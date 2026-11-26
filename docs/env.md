@@ -64,7 +64,7 @@
 | 板型宏 | `CONFIG_BOARD_TYPE_YUYI_A2=y` |
 | 控制串口 | UART1：TX=GPIO8 / RX=GPIO10，921600 8N1（已选定，待实车确认排针） |
 | 烧录方式 | USB（原生 USB）/ `esptool` |
-| 出厂固件 | `docs/flashing/yuyi-a2-v1-20261112-factory.bin`，0x0 合并镜像 |
+| 出厂固件 | `esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin`，0x0 合并镜像 |
 
 ## 网络
 

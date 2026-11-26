@@ -11,7 +11,7 @@
 | `yuyi-a2-v1-20261112-factory.bin` | 出厂 **0x0 合并镜像**，用于整片恢复 | ❌ 本地保留 |
 | `configure/` `dl_temp/` `logs/` | Flash Download Tool 的配置与临时目录 | ❌ 本地保留 |
 
-> 大文件不进 git 的规则在仓库根 `.gitignore` 的 `docs/flashing/*` 白名单里。
+> 大文件不进 git 的规则在仓库根 `.gitignore` 的 `esp32-s3/docs/flashing/*` 白名单里。
 > 出厂镜像属于 0x0 合并镜像，**不要**拿去当 OTA 包；OTA 只接受 `idf.py build`
 > 产出的 `build/xiaozhi.bin`（app 镜像）。
 
@@ -27,4 +27,4 @@ idf.py -p /dev/ttyACM0 app-flash
 烧录前把车轮架空；串口权限见仓库根 `.gitignore` 之外的说明（把用户加入
 `dialout` 组，或仅为 `/dev/ttyACM0` 恢复读写权限）。
 
-日常 app 烧录、串口日志和构建步骤见 [firmware/README.md](../../firmware/README.md)。
+日常 app 烧录、串口日志和构建步骤见 [firmware/README.md](../firmware/README.md)。

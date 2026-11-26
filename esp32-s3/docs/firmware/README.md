@@ -1,9 +1,9 @@
 # ESP32-S3 当前固件
 
-固件工程位于 `esp32-s3/xiaozhi-esp32-yuyi-20260603`，基于小智 2.0.2，`dev` 分支只维护当前实机板型：
+固件工程位于 `esp32-s3`，基于小智 2.0.2，`dev` 分支只维护当前实机板型：
 
 ```text
-main/boards/yuyi-a2/
+esp32-s3/main/boards/yuyi-a2/
 ```
 
 ## 当前能力
@@ -44,7 +44,7 @@ Demo 联调，不应直接作为生产环境的安全边界。
 
 ```bash
 source /home/lixin/esp/esp-idf/export.sh
-cd esp32-s3/xiaozhi-esp32-yuyi-20260603
+cd esp32-s3
 idf.py build
 ```
 
@@ -64,7 +64,7 @@ idf.py -p /dev/ttyACM0 monitor
 
 ## 板级目录
 
-- `main/boards/yuyi-a2/`：当前小车板级实现。
+- `esp32-s3/main/boards/yuyi-a2/`：当前小车板级实现。
 - `main/boards/common/`：Wi-Fi、按键、系统复位等共享基础代码，不是另一种板型。
 
 其他上游板型已经从 `dev` 分支移除。如需支持其他硬件，应从上游工程建立独立分支，不要直接修改当前板的 GPIO 配置。
