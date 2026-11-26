@@ -60,22 +60,22 @@
 
 | 资料 | 结论 |
 |---|---|
-| `xiaozhi-esp32-yuyi-20260603/` | 小智 AI 定制分支，`PROJECT_VER 2.0.2`，MIT；`sdkconfig` 已选中 `CONFIG_BOARD_TYPE_YUYI_A2_V1=y`；target `esp32s3`；16MB Flash；8MB assets 分区 |
+| `xiaozhi-esp32-yuyi-20260603/` | 小智 AI 定制分支，`PROJECT_VER 2.0.2`，MIT；`sdkconfig` 已选中 `CONFIG_BOARD_TYPE_YUYI_A2_LCD1306=y`；target `esp32s3`；16MB Flash；8MB assets 分区 |
 | `managed_components/` | 依赖已随包（约 501MB），可离线构建；`idf_component.yml` 要求 **ESP-IDF ≥ 5.4.0** |
-| `main/boards/yuyi_a2_v1/` | 板级引脚、LCD 驱动、电机 PWM、坦克控制、6 个 MCP 工具，二次开发主入口 |
+| `main/boards/yuyi-a2-lcd1306/` | 当前实机板级引脚、SSD1306 OLED、电机 PWM、坦克控制、TSP 遥测和 6 个 MCP 工具，二次开发主入口 |
 | `烧录/` | Windows 烧录工具 + 9.98MB 合并固件 `yuyi-a2-V1-20261112.bin`；日志证实从 **0x0** 整片写入 |
 | `SCH_ESP32-S3-AI-2-BOARD_v1.0_2_2026-10-20.pdf` | AI 主板系统原理图；不含底盘电机驱动；无模块 datasheet |
 | `3D打印框架.3mf` | 外壳结构件 |
 
 > 注意：源码快照（2026-06-03）与出厂固件（2026-11-12）不是同一次构建；烧录日志里实际写入的是 `A2-tank_20260512.bin`。重编后行为可能和出厂不一致。
 
-### 2.3 引脚与资源（以 `main/boards/yuyi_a2_v1/config.h` 为准）
+### 2.3 引脚与资源（以 `main/boards/yuyi-a2-lcd1306/config.h` 为准）
 
 | 功能 | GPIO | 备注 |
 |---|---|---|
 | 音频 I2S | 40 MCLK / 45 WS / 39 BCLK / 21 DIN / 48 DOUT | ES8311 + ES7210 |
 | 音频 I2C / 功放 | 38 SDA / 47 SCL / 46 PA_EN | |
-| LCD JD9853 | 7 SCK / 6 MOSI / 5 RST / 15 CS / 16 DC / 4 BLK | 240×296 SPI |
+| OLED SSD1306 | 15 SDA / 16 SCL | 128×64 I2C |
 | 按键 | 1 BOOT / 18 VOL+ / 2 VOL− | |
 | 电池 / 充电 | 3 ADC / 41 CHARGING / 42 DONE | ADC 分压 ×3 |
 | 电机 PWM | 9/11 左，13/14 右 | LEDC 4kHz，13bit |
@@ -92,7 +92,7 @@
 
 ### 2.4 已知问题（联调前必读）
 
-1. **上电自动前进**：`yuyi_a2_v1_board.cc` 构造函数里调用了 `TankMoveForward()`，注释写着“非测试代码，不可删除”。调试/上台前必须删掉或加编译开关。
+1. **上电自动前进**：当前板已通过 `TANK_ENABLE_POWER_ON_DEMO` 宏默认关闭，上电保持静止。
 2. **x/y 语义不一致**：`motion_control.c` 实际按 `base=x, turn=y` 计算，而 `tank_control.cc` 的前进传 `(0,1)`、左转传 `(-1,0)`，两者对不上。建议新增左右轮直控 API，不复用 `spark_bot_motion_control(x,y)`。
 3. **没有编码器**：电机是开环 PWM，没有 `/odom`，Nav2 阶段必须先补。
 4. **没有运动看门狗**：`MOVE` 型命令不收到 stop 会一直走。
@@ -175,7 +175,7 @@ tank_ws/
 │   ├── tank_bringup/       # launch、参数、udev、systemd
 │   └── tank_msgs/          # 可选：自定义消息
 ├── firmware/
-│   └── esp32_ctrl/         # 基于 yuyi_a2_v1 的固件
+│   └── esp32_ctrl/         # 基于 yuyi-a2-lcd1306 的固件
 ├── docs/                   # 环境记录、接线图、实验记录
 └── scripts/
 ```

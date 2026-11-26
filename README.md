@@ -88,9 +88,9 @@ tank-ros2/
 ## 固件基线
 
 - 工程版本：`2.0.2`
-- 板型：`CONFIG_BOARD_TYPE_YUYI_A2_V1=y`
+- 板型：`CONFIG_BOARD_TYPE_YUYI_A2_LCD1306=y`
 - 要求 ESP-IDF ≥ 5.4
-- 板级配置：`esp32-s3/xiaozhi-esp32-yuyi-20260603/main/boards/yuyi_a2_v1/`
+- 板级配置：`esp32-s3/xiaozhi-esp32-yuyi-20260603/main/boards/yuyi-a2-lcd1306/`
 - 出厂固件：`yuyi-a2-V1-20261112.bin`，为 **0x0 合并镜像**
 
 ## 快速开始（占位）

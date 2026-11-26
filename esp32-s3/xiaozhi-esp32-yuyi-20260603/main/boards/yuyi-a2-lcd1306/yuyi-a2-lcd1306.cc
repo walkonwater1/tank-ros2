@@ -32,6 +32,7 @@ extern "C" {
 
 // 坦克控制函数声明
 #include "tank_control.h"
+#include "tsp_mqtt_client.h"
 
 #define TAG "yuyi-a2-lcd1306"
 #define BATTERY_ADC_CHANNEL ADC_CHANNEL_2
@@ -429,6 +430,11 @@ public:
         // 初始化工具（依赖电机）
         InitializeTools();
 
+        // 独立连接新元 TSP；当前阶段只上报在线状态，不接管电机控制。
+        if (TspMqttStart() != ESP_OK) {
+            ESP_LOGW(TAG, "TSP MQTT startup failed; the main robot functions remain available");
+        }
+
         // tank-ros2: 默认关闭上电自走。需要厂商演示行为时定义
         // TANK_ENABLE_POWER_ON_DEMO 重新编译即可。
 #ifdef TANK_ENABLE_POWER_ON_DEMO
@@ -446,6 +452,8 @@ public:
 
     ~yuyi_a2_lcd1306Board()
     {
+        TspMqttStop();
+
         // 停止定时器
         esp_timer_stop(battery_timer_);
         esp_timer_delete(battery_timer_);

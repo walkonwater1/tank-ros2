@@ -85,7 +85,7 @@ S,<left>,<right>,<mv>\n # 可选：状态回传
 
 **目标**：提供不依赖 x/y 语义的左右轮速度接口。
 
-**进展（2026-11-25）**：已实现 `tank_set_wheel_speeds()` 和 `TankSetWheelSpeeds()`，代码在 `boards/yuyi_a2_v1/`，待编译烧录后实车验收。
+**进展（2026-11-26）**：当前实机代码位于 `boards/yuyi-a2-lcd1306/`，电机方向和上电静止逻辑已烧录验收。
 
 **为什么**：现有 `spark_bot_motion_control(x, y)` 实际按 `base=x, turn=y` 计算，而 `tank_control.cc` 的前进传 `(0,1)`、左转传 `(-1,0)`，两者不一致；直接复用会把前进变成原地转。
 
@@ -145,7 +145,7 @@ S,<left>,<right>,<mv>\n # 可选：状态回传
 **进展（2026-11-25）**：`TankMoveForward()` 已改为 `TANK_ENABLE_POWER_ON_DEMO` 编译开关，默认关闭；串口命令通过 `TankSetWheelSpeeds()` 投递到原运动队列，未直接写 PWM。
 
 **步骤**
-1. 删除/条件编译 `yuyi_a2_v1_board.cc` 构造函数里的 `TankMoveForward()`。
+1. 保持 `yuyi-a2-lcd1306.cc` 构造函数中的上电自走逻辑默认关闭。
 2. 串口任务不直接写 PWM，改为投递到 `tank_control.cc` 的队列。
 3. 检查语音 MCP 与串口命令的并发路径，必要时加互斥。
 4. 记录启动时的电机状态。
