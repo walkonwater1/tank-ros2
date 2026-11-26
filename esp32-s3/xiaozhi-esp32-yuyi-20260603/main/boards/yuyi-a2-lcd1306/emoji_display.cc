@@ -19,7 +19,6 @@ static constexpr int kAsrTextRowHeight = 18;
 
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
 LV_FONT_DECLARE(BUILTIN_ICON_FONT);
-LV_FONT_DECLARE(font_puhui_basic_14_1);
 
 // Static RoboEyes instance
 static RoboEyes robo_eyes_;
@@ -181,7 +180,10 @@ void EmoteDisplay::SetupEmoteScreen() {
     lv_canvas_fill_bg(emote_canvas_, lv_color_black(), LV_OPA_COVER);
 
     // Make the overlay a canvas child so every eye-frame redraw composes it.
-    auto text_font = &font_puhui_basic_14_1;
+    // Use the complete 14px Chinese font selected by the firmware build. The
+    // "basic" font omits many glyphs and can make a correct STT result appear
+    // incomplete or different on the OLED.
+    auto text_font = &BUILTIN_TEXT_FONT;
     emote_notification_label_ = lv_label_create(emote_canvas_);
     lv_label_set_text(emote_notification_label_, "");
     lv_obj_set_style_text_font(emote_notification_label_, text_font, 0);
