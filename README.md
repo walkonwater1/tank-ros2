@@ -82,12 +82,12 @@ tank-ros2/
 | `tank-ros2`（本仓库） | ROS 2 工作区、跨整机文档、RK3588 离线工具 |
 | [`tank-esp32`](https://github.com/walkonwater1/tank-esp32) | ESP32-S3 固件、板级配置、烧录/硬件资料、OTA 镜像 |
 
-本地建议并列存放：
+本地用一个公共目录放两个仓库：
 
 ```text
-github/
-├── tank-ros2/
-└── tank-esp32/
+esp-ros2-rk/
+├── tank-esp32/
+└── tank-ros2/
 ```
 
 固件编译、烧录和大文件策略见 `tank-esp32` 的 README。
