@@ -428,7 +428,14 @@ public:
         
         // 初始化工具（依赖电机）
         InitializeTools();
-        TankMoveForward(); //非测试代码，不可以删除
+
+        // tank-ros2: 默认关闭上电自走。需要厂商演示行为时定义
+        // TANK_ENABLE_POWER_ON_DEMO 重新编译即可。
+#ifdef TANK_ENABLE_POWER_ON_DEMO
+        TankMoveForward();
+#else
+        // 上电不自走，等待语音或上位机命令
+#endif
 
         // 初始读取一次电量
         UpdateBatteryStatus();

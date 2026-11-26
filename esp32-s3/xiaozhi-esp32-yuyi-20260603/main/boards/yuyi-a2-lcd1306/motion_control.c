@@ -28,6 +28,11 @@
 #define LEDC_M2_CHANNEL_A_IO        (13)
 #define LEDC_M2_CHANNEL_B_IO        (14)
 
+// The motors on this chassis are installed with reversed polarity.
+// Keep positive logical speeds as forward for every control source.
+#define LEFT_MOTOR_DIRECTION         (-1)
+#define RIGHT_MOTOR_DIRECTION        (-1)
+
 float m1_coefficient = 1.0;
 float m2_coefficient = 1.0;
 
@@ -62,6 +67,8 @@ void motor_ledc_init(void)
 
 static void set_left_motor_speed(int speed)
 {
+    speed *= LEFT_MOTOR_DIRECTION;
+
     if (speed >= 0) {
         uint32_t m1a_duty = (uint32_t)((speed * m1_coefficient * 8192) / 100);
         ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_M1_CHANNEL_A, m1a_duty));
@@ -79,6 +86,8 @@ static void set_left_motor_speed(int speed)
 
 static void set_right_motor_speed(int speed)
 {
+    speed *= RIGHT_MOTOR_DIRECTION;
+
     if (speed >= 0) {
         uint32_t m2a_duty = (uint32_t)((speed * m2_coefficient * 8192) / 100);
         ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, LEDC_M2_CHANNEL_A, m2a_duty));
