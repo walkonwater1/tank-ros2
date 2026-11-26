@@ -776,6 +776,10 @@ bool Application::UpgradeFirmware(Ota& ota, const std::string& url) {
         board.SetPowerSaveMode(true); // Restore power save mode
         Alert(Lang::Strings::ERROR, Lang::Strings::UPGRADE_FAILED, "circle_xmark", Lang::Sounds::OGG_EXCLAMATION);
         vTaskDelay(pdMS_TO_TICKS(3000));
+        // ★ 2026-11-26：失败时把状态从 kDeviceStateUpgrading 挪回 idle。
+        //   不挪的话设备会一直卡在 upgrading：TSP 的 ota_state 永远显示升级中，
+        //   OTA 面板的升级按钮也一直禁用，必须重启才能再试。
+        SetDeviceState(kDeviceStateIdle);
         return false;
     } else {
         // Upgrade success, reboot immediately

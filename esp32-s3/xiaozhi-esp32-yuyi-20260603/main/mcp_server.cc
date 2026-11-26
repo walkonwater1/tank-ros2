@@ -30,6 +30,15 @@ McpServer::~McpServer() {
     tools_.clear();
 }
 
+std::vector<std::string> McpServer::GetToolNames() const {
+    std::vector<std::string> names;
+    names.reserve(tools_.size());
+    for (const auto* tool : tools_) {
+        names.push_back(tool->name());
+    }
+    return names;
+}
+
 void McpServer::AddCommonTools() {
     // *Important* To speed up the response time, we add the common tools to the beginning of
     // the tools list to utilize the prompt cache.

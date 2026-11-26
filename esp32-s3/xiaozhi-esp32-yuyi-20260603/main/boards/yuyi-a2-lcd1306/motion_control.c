@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include "math.h"
 #include "freertos/FreeRTOS.h"
@@ -143,6 +144,15 @@ typedef struct {
     uint16_t    time;
 } dance_motion_t;
 
+// Set by TankStop() (another task) to interrupt the dance between 50 ms slices.
+// The dance loop resets it at the start, so a new dance is never born cancelled.
+static volatile bool s_dance_cancel = false;
+
+void spark_bot_dance_cancel(void)
+{
+    s_dance_cancel = true;
+}
+
 void spark_bot_dance(void)
 {
     // 使用左右履带速度和时间定义舞蹈动作
@@ -170,18 +180,32 @@ void spark_bot_dance(void)
         {0, 0, 500},                               // 停止，0.5 秒
     };
 
-    // 遍历动作列表并执行
-    for (int i = 0; i < sizeof(dance_moves) / sizeof(dance_moves[0]); i++) {
+    s_dance_cancel = false;
+
+    // 遍历动作列表并执行。等待切成 50 ms 小片，`TankStop()` 才能在下一片
+    // 立刻打断舞蹈 —— 否则 STOP 要等整段舞蹈跑完（约 17 s）才生效。
+    const int step_count = sizeof(dance_moves) / sizeof(dance_moves[0]);
+    for (int i = 0; i < step_count && !s_dance_cancel; i++) {
         // 控制左右电机速度
         set_left_motor_speed(dance_moves[i].left_speed);
         set_right_motor_speed(dance_moves[i].right_speed);
 
-        // 持续指定时间
-        vTaskDelay(dance_moves[i].time / portTICK_PERIOD_MS);
+        // 持续指定时间（50 ms 一片，便于被 STOP 打断）
+        uint16_t waited = 0;
+        while (waited < dance_moves[i].time && !s_dance_cancel) {
+            uint16_t slice = (dance_moves[i].time - waited) < 50
+                ? (uint16_t)(dance_moves[i].time - waited) : 50;
+            vTaskDelay(slice / portTICK_PERIOD_MS);
+            waited += slice;
+        }
 
         // 停止电机的PWM输出
         set_left_motor_speed(0);
         set_right_motor_speed(0);
     }
+
+    // 无论正常结束还是被中断，都保证电机停住。
+    set_left_motor_speed(0);
+    set_right_motor_speed(0);
 }
 

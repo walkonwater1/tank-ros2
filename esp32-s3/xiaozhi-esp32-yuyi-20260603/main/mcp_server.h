@@ -326,6 +326,10 @@ public:
     void ParseMessage(const cJSON* json);
     void ParseMessage(const std::string& message);
 
+    // Snapshot of registered tool names. Used by the TSP telemetry so the
+    // monitoring console can show which MCP tools this robot currently exposes.
+    std::vector<std::string> GetToolNames() const;
+
 private:
     McpServer();
     ~McpServer();

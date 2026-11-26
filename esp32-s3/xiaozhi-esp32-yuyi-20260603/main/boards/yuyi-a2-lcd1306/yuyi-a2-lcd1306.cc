@@ -33,6 +33,15 @@ extern "C" {
 // 坦克控制函数声明
 #include "tank_control.h"
 #include "tsp_mqtt_client.h"
+#include "ota.h"
+
+#include <atomic>
+#include <cstdio>
+#include <string>
+#include <vector>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #define TAG "yuyi-a2-lcd1306"
 #define BATTERY_ADC_CHANNEL ADC_CHANNEL_2
@@ -61,6 +70,11 @@ private:
     esp_timer_handle_t battery_timer_;
     int last_battery_voltage_;
     int last_battery_percentage_;
+    // 充电器状态：LGS4056 的 CHRG / DONE 都是低有效。
+    //   CHRG=0,DONE=1 → 正在充电；CHRG=1,DONE=0 → 已充满；CHRG=1,DONE=1 → 未接充电器。
+    bool last_battery_full_ = false;
+    int last_charge_pin_ = -1;
+    int last_done_pin_ = -1;
     bool led_on_ = false;
 
     // 电池定时器回调函数
@@ -514,19 +528,33 @@ public:
     {
         level = last_battery_percentage_;
 
-        uint8_t chargeLevel = gpio_get_level(CHARGING_GPIO);
-        uint8_t doneLevel = gpio_get_level(DONE_GPIO);
-        if (chargeLevel == 0 && doneLevel == 0)
+        // LGS4056（TP4056 同族）：CHRG / DONE 均为开漏、低有效。
+        //   (CHRG=0, DONE=1) 正在充电
+        //   (CHRG=1, DONE=0) 充电完成 —— **已充满，不是放电**
+        //   (CHRG=1, DONE=1) 未接充电器，电池供电
+        //   (0,0) 两个状态脚同时拉低，硬件上不应出现；按放电兜底。
+        // ⚠️ 旧代码把 (1,0) 判成 discharging=true，于是"充了一整天"在界面上
+        //    一直显示放电中、电量 84%。2026-11-26 修正。
+        const int charge_level = gpio_get_level(CHARGING_GPIO);
+        const int done_level = gpio_get_level(DONE_GPIO);
+        last_charge_pin_ = charge_level;
+        last_done_pin_ = done_level;
+        last_battery_full_ = (charge_level == 1 && done_level == 0);
+
+        if (last_battery_full_)
         {
+            // 充电器已经判满：以充电器为准，电压在负载/回弹下可能只有 4.0 V 左右，
+            // 不能再按 3.0–4.2 V 线性换算成 84%。
+            level = 100;
             charging = false;
-            discharging = true;
+            discharging = false;
         }
-        else if (chargeLevel == 0 && doneLevel == 1)
+        else if (charge_level == 0 && done_level == 1)
         {
             charging = true;
             discharging = false;
         }
-        else if (chargeLevel == 1 && doneLevel == 0)
+        else
         {
             charging = false;
             discharging = true;
@@ -534,6 +562,11 @@ public:
 
         return true;
     }
+
+    // 供 TSP 遥测/诊断使用
+    bool IsBatteryFull() const { return last_battery_full_; }
+    int GetChargePinLevel() const { return last_charge_pin_; }
+    int GetDonePinLevel() const { return last_done_pin_; }
 
     // 电机控制接口
     void ControlMotor(float x, float y)
@@ -571,5 +604,168 @@ public:
         spark_bot_motion_control(x, y);
     }
 };
+
+// ---------------------------------------------------------------------------
+// C entry points for tsp_mqtt_client.c (that file is plain C).
+//
+// All of these only read/write values the board already owns.  They are called
+// from the TSP MQTT tasks at 1 Hz, so they must stay cheap and must never block.
+// ---------------------------------------------------------------------------
+extern "C" {
+
+bool TankGetPowerStatus(int *voltage_mv, int *percentage,
+                        bool *charging, bool *discharging,
+                        bool *full, int *charge_pin, int *done_pin)
+{
+    auto &board = static_cast<yuyi_a2_lcd1306Board &>(Board::GetInstance());
+    int level = -1;
+    bool ch = false;
+    bool dis = false;
+    const bool known = board.GetBatteryLevel(level, ch, dis);
+
+    if (voltage_mv != nullptr) {
+        *voltage_mv = board.GetBatteryVoltage();
+    }
+    if (percentage != nullptr) {
+        *percentage = known ? level : -1;
+    }
+    if (charging != nullptr) {
+        *charging = ch;
+    }
+    if (discharging != nullptr) {
+        *discharging = dis;
+    }
+    if (full != nullptr) {
+        *full = board.IsBatteryFull();
+    }
+    if (charge_pin != nullptr) {
+        *charge_pin = board.GetChargePinLevel();
+    }
+    if (done_pin != nullptr) {
+        *done_pin = board.GetDonePinLevel();
+    }
+    return known;
+}
+
+int TankGetVolume(void)
+{
+    auto *codec = Board::GetInstance().GetAudioCodec();
+    return codec != nullptr ? codec->output_volume() : -1;
+}
+
+bool TankSetVolume(int value)
+{
+    if (value < 0 || value > 100) {
+        return false;
+    }
+    auto *codec = Board::GetInstance().GetAudioCodec();
+    if (codec == nullptr) {
+        return false;
+    }
+    codec->SetOutputVolume(value);
+    return true;
+}
+
+bool TankGetWifiStatus(char *ssid, size_t ssid_cap,
+                       int *rssi, int *channel,
+                       char *ip, size_t ip_cap,
+                       bool *connected, bool *config_mode)
+{
+    auto &station = WifiStation::GetInstance();
+    const bool up = station.IsConnected();
+
+    if (ssid != nullptr && ssid_cap > 0) {
+        std::snprintf(ssid, ssid_cap, "%s", station.GetSsid().c_str());
+    }
+    if (rssi != nullptr) {
+        *rssi = up ? static_cast<int>(station.GetRssi()) : 0;
+    }
+    if (channel != nullptr) {
+        *channel = up ? static_cast<int>(station.GetChannel()) : 0;
+    }
+    if (ip != nullptr && ip_cap > 0) {
+        std::snprintf(ip, ip_cap, "%s", station.GetIpAddress().c_str());
+    }
+    if (connected != nullptr) {
+        *connected = up;
+    }
+    if (config_mode != nullptr) {
+        *config_mode = static_cast<WifiBoard &>(Board::GetInstance()).IsWifiConfigMode();
+    }
+    return up;
+}
+
+size_t TankGetMcpToolNames(const char **names, size_t max)
+{
+    // Static so the returned c_str() pointers stay valid until the next call.
+    // Only the TSP telemetry task calls this, once per second.
+    static std::vector<std::string> cached;
+    cached = McpServer::GetInstance().GetToolNames();
+
+    const size_t count = cached.size() < max ? cached.size() : max;
+    for (size_t i = 0; i < count; ++i) {
+        names[i] = cached[i].c_str();
+    }
+    return count;
+}
+
+static std::atomic<bool> s_upgrade_in_progress{false};
+
+int TankGetDeviceState(void)
+{
+    return static_cast<int>(Application::GetInstance().GetDeviceState());
+}
+
+bool TankIsFirmwareUpgrading(void)
+{
+    // s_upgrade_in_progress 在任务启动时先置位；状态机要 3 秒后才进
+    // kDeviceStateUpgrading。两个都看，平台从下发那一刻就能显示"升级中"。
+    return s_upgrade_in_progress.load()
+        || Application::GetInstance().GetDeviceState() == kDeviceStateUpgrading;
+}
+
+// ---------------------------------------------------------------------------
+// TSP-triggered firmware upgrade.
+//
+// The upgrade itself is the same path the xiaozhi cloud / MCP tool uses:
+// Application::UpgradeFirmware() -> Ota::Upgrade() -> write the inactive OTA
+// slot -> esp_ota_set_boot_partition() -> reboot.  It must NOT run in the MQTT
+// event task (download can take minutes), so this wrapper only starts a task
+// and the TSP handler acks immediately.
+// ---------------------------------------------------------------------------
+static void TankOtaTask(void *arg)
+{
+    auto *url = static_cast<std::string *>(arg);
+    Ota ota;
+    if (!Application::GetInstance().UpgradeFirmware(ota, *url)) {
+        // UpgradeFirmware() also resets this on its failure path; keep a second
+        // guard here so a future early-return cannot leave the TSP state stuck.
+        Application::GetInstance().SetDeviceState(kDeviceStateIdle);
+    }
+    delete url;
+    s_upgrade_in_progress.store(false);
+    vTaskDelete(nullptr);
+}
+
+bool TankStartFirmwareUpgrade(const char *url)
+{
+    if (url == nullptr || url[0] == '\0') {
+        return false;
+    }
+    bool expected = false;
+    if (!s_upgrade_in_progress.compare_exchange_strong(expected, true)) {
+        return false;
+    }
+
+    auto *copy = new std::string(url);
+    if (xTaskCreate(TankOtaTask, "tsp_ota", 12288, copy, 5, nullptr) != pdPASS) {
+        delete copy;
+        s_upgrade_in_progress.store(false);
+        return false;
+    }
+    return true;
+}
+
+}  // extern "C"
 
 DECLARE_BOARD(yuyi_a2_lcd1306Board);

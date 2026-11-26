@@ -23,7 +23,8 @@ extern "C" {
 enum class MotionCmdType {
     STOP,       // 停止
     MOVE,       // 持续运动
-    MOVE_TIMED  // 定时运动
+    MOVE_TIMED, // 定时运动
+    DANCE       // 内置舞蹈序列（跑在运动任务里，可被 STOP 打断）
 };
 
 // 运动控制命令结构
@@ -72,6 +73,17 @@ static void MotionControlTask(void* arg)
                     is_moving = true;
                     remaining_ticks = pdMS_TO_TICKS(cmd.duration_ms);
                     ESP_LOGI(TAG, "收到定时运动命令: x=%.2f, y=%.2f, %d ms", cmd.x, cmd.y, cmd.duration_ms);
+                    break;
+
+                case MotionCmdType::DANCE:
+                    // 舞蹈在**运动任务**里跑，不占 MQTT / MCP 的任务；
+                    // TankStop() 从别的任务把 s_dance_cancel 置位，最多 50 ms 就退出来。
+                    spark_bot_motion_control(0, 0);
+                    is_moving = false;
+                    remaining_ticks = 0;
+                    ESP_LOGI(TAG, "开始舞蹈");
+                    spark_bot_dance();
+                    ESP_LOGI(TAG, "舞蹈结束");
                     break;
             }
         }
@@ -199,6 +211,9 @@ extern "C" bool TankTurnRightFor(int duration_ms)
 extern "C" bool TankStop(void)
 {
     ESP_LOGI(TAG, "小车停止");
+    // 舞蹈在运动任务里跑：先打断它（最多 50 ms），再把 STOP 排进队列。
+    // 队列里的 STOP 会在 spark_bot_dance() 返回后被运动任务接走，电机最终归零。
+    spark_bot_dance_cancel();
     MotionCommand cmd;
     cmd.type = MotionCmdType::STOP;
     cmd.x = 0;
@@ -211,8 +226,13 @@ extern "C" bool TankStop(void)
 extern "C" void TankDance(void)
 {
     ESP_LOGI(TAG, "小车跳个舞");
-    // 先停止当前运动
+    // 先停止当前运动（同时打断上一段舞蹈），再把 DANCE 排进运动队列。
+    // 异步执行让 TSP / MCP 的调用方立刻返回，不阻塞 MQTT 事件任务。
     TankStop();
-    // 执行舞蹈
-    spark_bot_dance();
+    MotionCommand cmd;
+    cmd.type = MotionCmdType::DANCE;
+    cmd.x = 0;
+    cmd.y = 0;
+    cmd.duration_ms = 0;
+    SendMotionCommand(cmd);
 }

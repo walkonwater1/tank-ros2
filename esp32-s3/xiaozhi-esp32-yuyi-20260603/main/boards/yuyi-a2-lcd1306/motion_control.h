@@ -19,6 +19,8 @@ void motor_ledc_init(void);
 void spark_bot_motion_control(float x, float y);
 void set_motor_speed_coefficients(float coefficient);
 void spark_bot_dance(void);
+// Interrupt an in-flight spark_bot_dance() at the next 50 ms slice.
+void spark_bot_dance_cancel(void);
 
 
 #ifdef __cplusplus
