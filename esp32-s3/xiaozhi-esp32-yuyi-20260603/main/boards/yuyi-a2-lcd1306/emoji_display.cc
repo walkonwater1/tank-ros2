@@ -15,6 +15,7 @@
 #define TAG "EmoteDisplay"
 
 static constexpr int kAsrTextDurationMs = 10000;
+static constexpr int kAsrTextRowHeight = 18;
 
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
 LV_FONT_DECLARE(BUILTIN_ICON_FONT);
@@ -192,11 +193,16 @@ void EmoteDisplay::SetupEmoteScreen() {
     lv_obj_set_style_border_width(emote_notification_label_, 0, 0);
     lv_obj_set_style_pad_all(emote_notification_label_, 0, 0);
     lv_obj_set_width(emote_notification_label_, width_ - 4);
-    lv_obj_set_height(emote_notification_label_, 16);
-    lv_label_set_long_mode(emote_notification_label_, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_style_text_align(emote_notification_label_, LV_TEXT_ALIGN_CENTER, 0);
+    // The 14px Puhui font has an 18px LVGL line height. A shorter object makes
+    // LVGL treat the text as vertically overflowing and scroll bottom-to-top.
+    lv_obj_set_height(emote_notification_label_, kAsrTextRowHeight);
+    // Keep only one copy of the ASR text. Circular mode concatenates the same
+    // sentence repeatedly while scrolling, which looks like duplicate ASR.
+    lv_label_set_long_mode(emote_notification_label_, LV_LABEL_LONG_SCROLL);
+    lv_obj_set_style_text_align(emote_notification_label_, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_set_style_base_dir(emote_notification_label_, LV_BASE_DIR_LTR, 0);
     lv_obj_set_style_anim_duration(emote_notification_label_, 4000, 0);
-    lv_obj_set_pos(emote_notification_label_, 2, height_ - 16);
+    lv_obj_set_pos(emote_notification_label_, 2, height_ - kAsrTextRowHeight);
     lv_obj_add_flag(emote_notification_label_, LV_OBJ_FLAG_HIDDEN);
 }
 
@@ -475,9 +481,9 @@ void EmoteDisplay::RenderEmoteFrame() {
             memset(&dst_row[src_row_bytes], 0, stride - src_row_bytes);
         }
 
-        // Reserve a clean black 16px subtitle row. In the inverted I1 canvas,
+        // Reserve a clean black subtitle row. In the inverted I1 canvas,
         // palette index 1 (all bits set) is the OLED-off/black background.
-        if (y >= height_ - 16) {
+        if (y >= height_ - kAsrTextRowHeight) {
             memset(dst_row, 0xFF, stride);
         }
     }
