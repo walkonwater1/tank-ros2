@@ -4,6 +4,9 @@
 
 > 名字里的 `tank` 指坦克式履带底盘（tank drive / 差速驱动），不是“水箱”。
 
+本仓库只保留 **ROS 2 工作区、跨整机文档和离线工具**；ESP32 固件在独立仓库
+[walkonwater1/tank-esp32](https://github.com/walkonwater1/tank-esp32)。
+
 - 命令服务器：RK3588 16G 或外部 4090 服务器（Ubuntu + ROS2）
 - 实时执行层：ESP32-S3（ESP-IDF + FreeRTOS）
 - 监测与上报节点：H618 盒子（Armbian，多机 DDS / rosbag / 网关）
@@ -33,10 +36,7 @@ ESP32-S3 小车  ← Wi-Fi →  命令服务器（RK3588 / 外部 4090）  ← �
 - [环境与版本记录](docs/env.md) —— RK3588 / H618 / ESP32 / 网络版本信息
 - [串口控制协议 v1](docs/protocol.md) —— ESP32 控制帧、双层看门狗、差速解算与网络角色
 - [通信方案对比与实验计划](docs/communication-options.md) —— 自定义 UDP vs micro-ROS over Wi-Fi，量化对比与实验步骤
-- [ESP32 板级改动](esp32-s3/docs/firmware/README.md) —— 改动清单、接线、编译烧录、串口验证
-- [烧录资料](esp32-s3/docs/flashing/README.md) —— 厂商 0x0 合并镜像、Flash Download Tool、烧录示意图
-- [硬件资料](esp32-s3/docs/hardware/README.md) —— AI 主板原理图、3D 打印结构件
-- [上游小智 README](esp32-s3/docs/upstream/xiaozhi/README.md) —— 上游工程说明（中文 / English / 日本語）
+- [ESP32 固件仓库](https://github.com/walkonwater1/tank-esp32) —— 板级改动、烧录资料、硬件资料、上游说明
 
 ## 当前状态
 
@@ -63,16 +63,6 @@ tank-ros2/
 │   ├── protocol.md            # 串口控制协议
 │   ├── communication-options.md
 │   └── tasks/                 # 任务卡
-├── esp32-s3/                  # ESP-IDF 固件工程
-│   ├── main/                  # main.cc + app / assets / boards / device / protocols / service
-│   ├── config/                # sdkconfig、sdkconfig.defaults*、partitions/
-│   ├── docs/
-│   │   ├── firmware/          # 板级改动、接线、编译烧录、验证
-│   │   ├── flashing/          # 厂商烧录资料（PDF 进 git，exe/bin 本地保留）
-│   │   ├── hardware/          # AI 主板原理图、3D 打印结构件
-│   │   └── upstream/          # 上游小智 README
-│   ├── backups/               # 厂商备份固件（bin 忽略）
-│   └── scripts/               # 构建/烧录辅助脚本
 ├── tools/                     # 离线工具包（x86 PC 用）
 │   └── device-tree-compiler_1.6.1-1_amd64.deb  # dtc，编译 RK3588 设备树 overlay
 └── ros2_ws/
@@ -83,47 +73,42 @@ tank-ros2/
         └── tank_msgs/         # 可选：自定义消息
 ```
 
-## 大文件策略
+固件源码、板级配置和烧录资料在独立仓库 `tank-esp32`，不在本目录内。
 
-`esp32-s3/` 解压后约 838MB，其中：
+## 仓库拆分
 
-| 内容 | 体积 | 处理 |
-|---|---|---|
-| `managed_components/` | ~501MB | **忽略**，由 `dependencies.lock` 重新拉取 |
-| `xiaozhi-esp32-yuyi-*.zip` | ~248MB | 忽略，原始归档放本地或 Release |
-| 固件源码（去掉上述） | ~8MB | 可以进 git |
+| 仓库 | 内容 |
+|---|---|
+| `tank-ros2`（本仓库） | ROS 2 工作区、跨整机文档、RK3588 离线工具 |
+| [`tank-esp32`](https://github.com/walkonwater1/tank-esp32) | ESP32-S3 固件、板级配置、烧录/硬件资料、OTA 镜像 |
 
-烧录资料已从 `esp32-s3/烧录/` 移到 [esp32-s3/docs/flashing/](esp32-s3/docs/flashing/)：
+本地建议并列存放：
 
-| 内容 | 体积 | 处理 |
-|---|---|---|
-| `esp32-s3/docs/flashing/mainboard-flashing-guide.pdf` | ~146KB | 进 git |
-| `esp32-s3/docs/flashing/flash_download_tool_3.9.10.exe` | ~22MB | 本地保留，忽略 |
-| `esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin` | ~9.6MB | 本地保留，忽略（建议放 GitHub Release） |
-| `esp32-s3/docs/flashing/configure/` `dl_temp/` `logs/` | — | 本地保留，忽略 |
+```text
+github/
+├── tank-ros2/
+└── tank-esp32/
+```
 
-因此 `.gitignore` 排除了依赖、压缩包和烧录工具的大文件，**保留约 8MB 的固件源码**。如果后续决定只保留板级改动，可把 `esp32-s3/` 整体忽略，改成 `firmware/overlay/` + 上游 commit 说明。
+固件编译、烧录和大文件策略见 `tank-esp32` 的 README。
 
 ## 固件基线
 
-- 工程版本：`2.0.3`
-- 板型：`CONFIG_BOARD_TYPE_YUYI_A2=y`
-- 要求 ESP-IDF ≥ 5.4
-- 板级配置：`esp32-s3/main/boards/yuyi-a2/`
-- 出厂固件：`esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin`，为 **0x0 合并镜像**（不进 git）
+固件版本、板型、烧录和 OTA 说明统一在
+[`tank-esp32`](https://github.com/walkonwater1/tank-esp32)。当前版本 `2.0.3`，
+板型 `CONFIG_BOARD_TYPE_YUYI_A2=y`，要求 ESP-IDF ≥ 5.4。
 
 ## 快速开始（占位）
 
 ```bash
 # RK3588
 source /opt/ros/humble/setup.bash
-
-# ESP32 固件
-. $IDF_PATH/export.sh
-cd esp32-s3
-idf.py set-target esp32s3
-idf.py build
+cd ros2_ws
+colcon build
 ```
+
+ESP32 固件的编译与烧录见
+[`tank-esp32`](https://github.com/walkonwater1/tank-esp32)。
 
 具体步骤随阶段推进更新到 `docs/`。
 

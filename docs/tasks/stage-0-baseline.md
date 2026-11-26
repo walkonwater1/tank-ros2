@@ -120,18 +120,18 @@
 
 **步骤**
 1. 安装 ESP-IDF ≥ 5.4，记录版本。
-2. 编译厂商工程：
+2. 编译厂商工程（固件在兄弟仓库 `tank-esp32`）：
    ```bash
-   cd esp32-s3
+   cd ../tank-esp32
    idf.py set-target esp32s3
    idf.py build
    ```
 3. 用 USB 烧录，确认启动日志。
-4. 备份出厂合并镜像 `esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin`。
+4. 备份出厂合并镜像 `tank-esp32/docs/flashing/yuyi-a2-v1-20261112-factory.bin`。
 5. 用 `esptool` 验证恢复（写 0x0）：
    ```bash
-   # 在仓库根执行
-   esptool.py --chip esp32s3 -p /dev/ttyACM0 write_flash 0x0 esp32-s3/docs/flashing/yuyi-a2-v1-20261112-factory.bin
+   # 在 tank-ros2 仓库根执行
+   esptool.py --chip esp32s3 -p /dev/ttyACM0 write_flash 0x0 ../tank-esp32/docs/flashing/yuyi-a2-v1-20261112-factory.bin
    ```
 6. 记录编译耗时、固件大小、分区占用。
 
@@ -154,7 +154,7 @@
 **目标**：任何人（包括未来的你）能看懂仓库结构和当前进度。
 
 **步骤**
-1. 检查 `.gitignore`：确认不提交 `managed_components/`、zip、`esp32-s3/docs/flashing/` 下的大文件（exe / bin / 临时目录）、`*.bin`。
+1. 检查 `.gitignore`：本仓库忽略 ROS 2 构建产物；固件仓库 `tank-esp32` 忽略 `managed_components/`、zip、`docs/flashing/` 下的大文件（exe / bin / 临时目录）和 `*.bin`。
 2. 维护 `README.md`：定位、目录、状态表、快速开始。
 3. 维护 `docs/roadmap.md` 与 `docs/tasks/`。
 4. 建立 `docs/experiments/` 记录模板（日期、目标、配置、结果、结论）。
