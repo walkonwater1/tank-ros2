@@ -62,7 +62,7 @@
 |---|---|
 | `tank-esp32/` | 小智 AI 定制分支，`PROJECT_VER 2.0.3`，MIT；`config/sdkconfig` 已选中 `CONFIG_BOARD_TYPE_YUYI_A2=y`；target `esp32s3`；16MB Flash；8MB assets 分区 |
 | `managed_components/` | 依赖已随包（约 501MB），可离线构建；`idf_component.yml` 要求 **ESP-IDF ≥ 5.4.0** |
-| `tank-esp32/src/boards/` | 当前实机板级引脚、SSD1306 OLED、电机 PWM、坦克控制、TSP 遥测和 6 个 MCP 工具，二次开发主入口 |
+| `tank-esp32/src/boards/` | 板级入口和引脚配置；显示在 `device/display/`，运动控制在 `device/motion/`，TSP 在 `middleware/tsp/` |
 | `tank-esp32/docs/flashing/` | Windows 烧录工具 + 9.98MB 合并固件；日志证实从 **0x0** 整片写入 |
 | `tank-esp32/docs/hardware/schematic-esp32-s3-ai-2-board-v1.0.2.pdf` | AI 主板系统原理图；不含底盘电机驱动；无模块 datasheet |
 | `tank-esp32/docs/hardware/3d-print-frame.3mf` | 外壳结构件 |
